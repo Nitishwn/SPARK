@@ -131,7 +131,7 @@ export function ParkingMap({ spots, selectedFacility, onSpotSelect }: ParkingMap
                           <div 
                             key={spot.id}
                             className={`
-                              w-16 h-16 rounded-lg border-2 flex flex-col items-center justify-center cursor-pointer transition-all
+                              w-20 h-20 rounded-lg border-2 flex flex-col items-center justify-center transition-all relative group
                               ${spot.status === 'available' 
                                 ? 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300 hover:scale-105 hover:shadow-md' 
                                 : spot.status === 'occupied' 
@@ -140,19 +140,39 @@ export function ParkingMap({ spots, selectedFacility, onSpotSelect }: ParkingMap
                                     ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-500 text-yellow-700 dark:text-yellow-300' 
                                     : 'bg-gray-200 dark:bg-gray-700 border-gray-500 text-gray-700 dark:text-gray-300'}
                             `}
-                            onClick={() => onSpotSelect && spot.status === 'available' && onSpotSelect(spot)}
                             title={`Spot ${spot.spotNumber} - ${spot.status.charAt(0).toUpperCase() + spot.status.slice(1)}`}
                           >
-                            <span className="font-bold text-base">{spot.spotNumber}</span>
-                            <span className="text-xs capitalize mt-1">
-                              {spot.spotType || 'Standard'}
-                            </span>
-                            <span className="text-xs mt-0.5">
-                              {spot.status === 'available' ? 'Free' : 
-                               spot.status === 'occupied' ? 'Taken' : 
-                               spot.status === 'reserved' ? 'Reserved' : 
-                               spot.status}
-                            </span>
+                            <div 
+                              className="w-full h-full flex flex-col items-center justify-center cursor-pointer"
+                              onClick={() => onSpotSelect && spot.status === 'available' && onSpotSelect(spot)}
+                            >
+                              <span className="font-bold text-base">{spot.spotNumber}</span>
+                              <span className="text-xs capitalize mt-1">
+                                {spot.spotType || 'Standard'}
+                              </span>
+                              <span className="text-xs mt-0.5">
+                                {spot.status === 'available' ? 'Free' : 
+                                 spot.status === 'occupied' ? 'Taken' : 
+                                 spot.status === 'reserved' ? 'Reserved' : 
+                                 spot.status}
+                              </span>
+                            </div>
+                            
+                            {/* Quick book action overlay - only shows on hover for available spots */}
+                            {spot.status === 'available' && (
+                              <div className="absolute inset-0 bg-black/40 rounded-md opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center invisible group-hover:visible">
+                                <button 
+                                  className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-sm hover:bg-primary/90"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // This would trigger a quick booking in a real implementation
+                                    onSpotSelect && onSpotSelect(spot);
+                                  }}
+                                >
+                                  Quick Book
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

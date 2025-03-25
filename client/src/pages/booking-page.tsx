@@ -32,6 +32,7 @@ import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { insertVehicleSchema } from '@shared/schema';
+import { addHours, format } from 'date-fns';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,6 +43,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+// Booking form schema type
+type BookingFormValues = {
+  facilityId: string;
+  date: string;
+  time: string;
+  duration: string;
+  vehicleId: string;
+  spotId?: string;
+};
 
 // Price card information
 const pricingInfo = [
@@ -352,6 +363,63 @@ export default function BookingPage() {
     addVehicleMutation.mutate(values);
   }
   
+  // Quick booking mutation
+  const quickBookMutation = useMutation({
+    mutationFn: async (values: BookingFormValues) => {
+      const res = await apiRequest('POST', '/api/bookings', {
+        vehicleId: parseInt(values.vehicleId),
+        spotId: parseInt(values.spotId || '0'),
+        startTime: new Date(`${values.date}T${values.time}`),
+        endTime: addHours(new Date(`${values.date}T${values.time}`), parseInt(values.duration)),
+        totalAmount: 1000,
+        paymentStatus: 'pending',
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Quick booking successful',
+        description: 'Your parking spot has been reserved.',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/facilities/${selectedFacilityId}/spots`] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Booking failed',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Handle quick booking
+  const handleQuickBook = (spot: ParkingSpot) => {
+    if (vehicles && vehicles.length > 0) {
+      setSelectedSpot(spot);
+      const bookingData = {
+        facilityId: spot.facilityId.toString(),
+        date: format(new Date(), 'yyyy-MM-dd'),
+        time: format(new Date(), 'HH:mm'),
+        duration: '2',
+        vehicleId: vehicles[0].id.toString(),
+        spotId: spot.id.toString(),
+      };
+      toast({
+        title: "Quick booking",
+        description: `Booking spot ${spot.spotNumber} with ${vehicles[0].make} ${vehicles[0].model}`,
+      });
+      quickBookMutation.mutate(bookingData);
+    } else {
+      toast({
+        title: "No vehicles available",
+        description: "Please add a vehicle first",
+        variant: "destructive",
+      });
+      setAddVehicleDialogOpen(true);
+    }
+  };
+
   // Handle spot selection
   const handleSpotSelect = (spot: ParkingSpot) => {
     if (spot.status === 'available') {
@@ -484,11 +552,10 @@ export default function BookingPage() {
                         .map(spot => (
                           <div 
                             key={spot.id}
-                            className="border border-gray-200 dark:border-gray-700 rounded-md p-3 cursor-pointer hover:border-primary hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                            onClick={() => handleSpotSelect(spot)}
+                            className="border border-gray-200 dark:border-gray-700 rounded-md p-3 hover:border-primary hover:bg-blue-50 dark:hover:bg-blue-900/20"
                           >
                             <div className="flex items-center justify-between">
-                              <div>
+                              <div className="cursor-pointer" onClick={() => handleSpotSelect(spot)}>
                                 <div className="font-medium">{spot.spotNumber}</div>
                                 <div className="text-sm text-gray-500 dark:text-gray-400">
                                   Section {spot.section}, Floor {spot.floor}
@@ -497,8 +564,22 @@ export default function BookingPage() {
                                   <span className="capitalize">{spot.spotType}</span>
                                 </div>
                               </div>
-                              <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs font-medium px-2.5 py-0.5 rounded">
-                                Available
+                              <div className="flex flex-col gap-2">
+                                <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs font-medium px-2.5 py-0.5 rounded">
+                                  Available
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-xs h-8 mt-1"
+                                  onClick={() => handleQuickBook(spot)}
+                                  disabled={!vehicles || vehicles.length === 0 || quickBookMutation.isPending}
+                                >
+                                  {quickBookMutation.isPending && selectedSpot?.id === spot.id 
+                                    ? "Booking..." 
+                                    : "Quick Book"
+                                  }
+                                </Button>
                               </div>
                             </div>
                           </div>
