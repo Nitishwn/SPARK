@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { ParkingFacility, ParkingSpot, Vehicle } from '@shared/schema';
 import { BookingForm } from '@/components/forms/booking-form';
 import { ParkingMap } from '@/components/dashboard/parking-map';
+import { AdasConnectModal } from '@/components/dashboard/adas-connect-modal';
+import { AdasNavigation } from '@/components/dashboard/adas-navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Tabs,
@@ -21,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Plus, Car } from 'lucide-react';
+import { Plus, Car, Navigation } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -48,6 +50,8 @@ export default function BookingPage() {
   const [selectedFacilityId, setSelectedFacilityId] = useState<number | null>(null);
   const [selectedSpot, setSelectedSpot] = useState<ParkingSpot | null>(null);
   const [addVehicleDialogOpen, setAddVehicleDialogOpen] = useState(false);
+  const [adasModalOpen, setAdasModalOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   
   // Fetch facilities
   const { data: facilities = [] } = useQuery<ParkingFacility[]>({
@@ -122,7 +126,28 @@ export default function BookingPage() {
   const handleSpotSelect = (spot: ParkingSpot) => {
     if (spot.status === 'available') {
       setSelectedSpot(spot);
+      
+      // Simulate entering parking facility after 3 seconds
+      // In a real app, this would be triggered by geolocation or beacon
+      setTimeout(() => {
+        setAdasModalOpen(true);
+      }, 3000);
     }
+  };
+  
+  // Handle ADAS confirmation
+  const handleAdasConfirm = () => {
+    setAdasModalOpen(false);
+    setIsNavigating(true);
+  };
+  
+  // Handle navigation completed
+  const handleNavigationComplete = () => {
+    setIsNavigating(false);
+    toast({
+      title: "Parking Completed",
+      description: "Your vehicle has been successfully parked.",
+    });
   };
   
   return (
@@ -361,6 +386,8 @@ export default function BookingPage() {
                           const value = e.target.value;
                           field.onChange(value === '' ? undefined : parseInt(value, 10));
                         }}
+                        // Convert null to undefined to avoid type errors
+                        value={field.value === null ? undefined : field.value}
                         placeholder="2023"
                       />
                     </FormControl>
@@ -388,6 +415,26 @@ export default function BookingPage() {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* ADAS Connection Modal */}
+      <AdasConnectModal 
+        isOpen={adasModalOpen} 
+        onClose={() => setAdasModalOpen(false)}
+        onConfirm={handleAdasConfirm}
+        selectedSpot={selectedSpot || undefined}
+      />
+
+      {/* ADAS Navigation Interface */}
+      {isNavigating && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="max-w-md w-full">
+            <AdasNavigation 
+              spot={selectedSpot || undefined} 
+              onComplete={handleNavigationComplete} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
