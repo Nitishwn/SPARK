@@ -50,16 +50,18 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="lg:w-1/2 lg:pl-10">
-                <div className="relative rounded-xl overflow-hidden shadow-xl">
-                  <img 
-                    src="https://images.unsplash.com/photo-1609618277380-8e0cd288cf22?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                    alt="Smart parking system with cars and technology" 
-                    className="w-full h-auto object-cover"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary text-white">
-                      <Car className="h-3 w-3 mr-1" /> Real-time Parking
-                    </span>
+                <div className="relative rounded-xl overflow-hidden shadow-xl bg-blue-100 dark:bg-blue-900/20">
+                  <div className="p-8 min-h-[300px] flex flex-col items-center justify-center">
+                    <div className="flex justify-center mb-4">
+                      <Car className="h-24 w-24 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-center mb-2">Smart Parking Solutions</h3>
+                    <p className="text-center">Find, book, and navigate to available parking spots with ease</p>
+                    <div className="mt-6">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary text-white">
+                        <Car className="h-3 w-3 mr-1" /> Real-time Parking
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -156,16 +158,17 @@ export default function HomePage() {
                   number={1}
                   title="Detection"
                   description="IoT sensors and cameras throughout parking facilities continuously monitor spot availability and transmit data to our cloud platform."
-                  imageUrl="https://images.unsplash.com/photo-1553413077-190dd305871c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-                  imageAlt="IoT sensors detecting parking spots"
+                  icon={Search}
+                  iconColor="text-blue-600 dark:text-blue-400"
                 />
                 
                 <HowItWorksStep 
                   number={2}
                   title="Processing"
                   description="Our AI algorithms process the collected data to create real-time maps, predict availability, and optimize parking allocations."
-                  imageUrl="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-                  imageAlt="AI processing parking data"
+                  icon={BarChart}
+                  iconColor="text-green-600 dark:text-green-400"
+                  iconBgColor="bg-green-100 dark:bg-green-900/20"
                   isReversed={true}
                 />
                 
@@ -173,16 +176,18 @@ export default function HomePage() {
                   number={3}
                   title="Navigation"
                   description="Users receive turn-by-turn directions to their reserved spot through the mobile app, with ADAS integration for compatible vehicles."
-                  imageUrl="https://images.unsplash.com/photo-1484378840990-48ec0c26b510?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-                  imageAlt="Navigation to parking spot"
+                  icon={Route}
+                  iconColor="text-amber-600 dark:text-amber-400"
+                  iconBgColor="bg-amber-100 dark:bg-amber-900/20"
                 />
                 
                 <HowItWorksStep 
                   number={4}
                   title="Monitoring & Management"
                   description="Facility managers use our dashboard to monitor occupancy, analyze usage patterns, and optimize parking operations."
-                  imageUrl="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
-                  imageAlt="Dashboard monitoring"
+                  icon={Smartphone}
+                  iconColor="text-purple-600 dark:text-purple-400"
+                  iconBgColor="bg-purple-100 dark:bg-purple-900/20"
                   isReversed={true}
                 />
               </div>

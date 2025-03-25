@@ -1,11 +1,13 @@
 import React from 'react';
+import { LucideIcon } from 'lucide-react';
 
 interface HowItWorksStepProps {
   number: number;
   title: string;
   description: string;
-  imageUrl: string;
-  imageAlt: string;
+  icon: LucideIcon;
+  iconColor?: string;
+  iconBgColor?: string;
   isReversed?: boolean;
 }
 
@@ -13,8 +15,9 @@ export function HowItWorksStep({
   number,
   title,
   description,
-  imageUrl,
-  imageAlt,
+  icon: Icon,
+  iconColor = "text-primary",
+  iconBgColor = "bg-blue-100 dark:bg-blue-900/20",
   isReversed = false
 }: HowItWorksStepProps) {
   return (
@@ -31,12 +34,8 @@ export function HowItWorksStep({
       </div>
       
       <div className={`md:w-1/2 ${isReversed ? 'md:pr-12' : 'md:pl-12'}`}>
-        <div className="rounded-lg overflow-hidden shadow-md">
-          <img 
-            src={imageUrl}
-            alt={imageAlt}
-            className="w-full h-auto"
-          />
+        <div className={`rounded-lg overflow-hidden shadow-md ${iconBgColor} p-12 flex justify-center items-center`}>
+          <Icon className={`w-20 h-20 ${iconColor}`} />
         </div>
       </div>
     </div>
