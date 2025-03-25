@@ -29,7 +29,21 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    // Handle array query keys by joining them with slashes
+    let url: string;
+    if (Array.isArray(queryKey) && queryKey.length > 1) {
+      // Convert query key array to URL path
+      url = queryKey.reduce((path, segment, index) => {
+        if (index === 0) return segment as string;
+        return `${path}/${segment}`;
+      }, '');
+    } else {
+      url = queryKey[0] as string;
+    }
+
+    console.log(`Fetching data from: ${url}`);
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 

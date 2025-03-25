@@ -299,8 +299,8 @@ export default function BookingPage() {
   const selectedFacility = facilities.find(f => f.id === selectedFacilityId) || { id: 0, name: 'Loading...' };
   
   // Fetch spots for selected facility
-  const { data: spots = [] } = useQuery<ParkingSpot[]>({
-    queryKey: ['/api/facilities', selectedFacilityId, 'spots'],
+  const { data: spots = [], isLoading: isLoadingSpots } = useQuery<ParkingSpot[]>({
+    queryKey: selectedFacilityId ? [`/api/facilities/${selectedFacilityId}/spots`] : [''],
     enabled: !!selectedFacilityId,
   });
   
