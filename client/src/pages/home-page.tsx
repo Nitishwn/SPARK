@@ -31,10 +31,10 @@ export default function HomePage() {
             <div className="flex flex-col lg:flex-row items-center">
               <div className="lg:w-1/2 mb-10 lg:mb-0">
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-                  The Future of <span className="text-primary">Smart Parking</span> is Here
+                  ADAS-Enabled <span className="text-primary">Smart Parking</span> Solution
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-                  SPARK uses AI and IoT to solve urban parking challenges. Find, reserve, and navigate to available parking spots in real-time.
+                  SPARK connects directly to your vehicle's ADAS. Drive in, receive instant spot recommendations, tap to confirm, and let your vehicle navigate you directly to your spot.
                 </p>
                 <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                   <Button size="lg" asChild>
@@ -52,14 +52,23 @@ export default function HomePage() {
               <div className="lg:w-1/2 lg:pl-10">
                 <div className="relative rounded-xl overflow-hidden shadow-xl bg-blue-100 dark:bg-blue-900/20">
                   <div className="p-8 min-h-[300px] flex flex-col items-center justify-center">
-                    <div className="flex justify-center mb-4">
+                    <div className="flex justify-center mb-4 relative">
                       <Car className="h-24 w-24 text-primary" />
+                      <div className="absolute -right-4 -top-2 bg-green-100 dark:bg-green-900/50 rounded-full p-2">
+                        <Route className="h-6 w-6 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div className="absolute -left-4 -top-2 bg-amber-100 dark:bg-amber-900/50 rounded-full p-2">
+                        <Smartphone className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                      </div>
                     </div>
-                    <h3 className="text-xl font-semibold text-center mb-2">Smart Parking Solutions</h3>
-                    <p className="text-center">Find, book, and navigate to available parking spots with ease</p>
-                    <div className="mt-6">
+                    <h3 className="text-xl font-semibold text-center mb-2">ADAS-Enabled Parking</h3>
+                    <p className="text-center">Your vehicle automatically connects, receives spot recommendations, and navigates</p>
+                    <div className="mt-6 flex space-x-2">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary text-white">
-                        <Car className="h-3 w-3 mr-1" /> Real-time Parking
+                        <Car className="h-3 w-3 mr-1" /> ADAS Integration
+                      </span>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500 text-white">
+                        <Route className="h-3 w-3 mr-1" /> Auto-Navigation
                       </span>
                     </div>
                   </div>
@@ -98,8 +107,8 @@ export default function HomePage() {
               
               <FeatureCard 
                 icon={Route} 
-                title="Autonomous Navigation" 
-                description="ADAS integration guides vehicles to spots with turn-by-turn directions and automated parking assistance."
+                title="Intelligent ADAS Integration" 
+                description="When you enter the facility, our system connects with your vehicle's ADAS, instantly suggesting available spots with single-tap confirmation and automated navigation guidance."
                 iconColor="text-green-500"
                 iconBgColor="bg-green-100 dark:bg-green-900/20"
               />
@@ -174,8 +183,8 @@ export default function HomePage() {
                 
                 <HowItWorksStep 
                   number={3}
-                  title="Navigation"
-                  description="Users receive turn-by-turn directions to their reserved spot through the mobile app, with ADAS integration for compatible vehicles."
+                  title="ADAS Integration"
+                  description="As you enter the parking facility, your vehicle's ADAS connects to our system and receives real-time spot availability. Accept the recommendation with a single tap for automated navigation to your spot."
                   icon={Route}
                   iconColor="text-amber-600 dark:text-amber-400"
                   iconBgColor="bg-amber-100 dark:bg-amber-900/20"
@@ -198,15 +207,22 @@ export default function HomePage() {
         {/* CTA Section */}
         <section className="py-16 bg-primary bg-opacity-10 dark:bg-opacity-5">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Ready to Transform Your Parking Experience?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Experience ADAS-Enabled Smart Parking</h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8">
-              Join thousands of drivers who have already discovered the convenience of SPARK smart parking.
+              Connect your vehicle's ADAS to SPARK and discover effortless parking with automated spot recommendations and navigation.
             </p>
-            <Button size="lg" asChild>
-              <Link href={user ? "/dashboard" : "/auth"}>
-                Get Started Today
-              </Link>
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button size="lg" asChild>
+                <Link href={user ? "/dashboard" : "/auth"}>
+                  <Car className="mr-2 h-5 w-5" /> Connect Your Vehicle
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" asChild>
+                <Link href="#how-it-works">
+                  <Route className="mr-2 h-5 w-5" /> See How It Works
+                </Link>
+              </Button>
+            </div>
           </div>
         </section>
       </main>
