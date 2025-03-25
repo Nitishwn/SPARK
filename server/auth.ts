@@ -5,7 +5,9 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { User as SelectUser, insertUserSchema } from "@shared/schema";
+import { ZodError } from "zod";
+import { fromZodError } from "zod-validation-error";
 
 declare global {
   namespace Express {
@@ -30,12 +32,12 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "spark-parking-secret-key",
+    secret: process.env.SESSION_SECRET || "spark-parking-secret",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     }
   };
 
@@ -49,12 +51,12 @@ export function setupAuth(app: Express) {
       try {
         const user = await storage.getUserByUsername(username);
         if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
+          return done(null, false, { message: "Invalid username or password" });
         } else {
           return done(null, user);
         }
-      } catch (error) {
-        return done(error);
+      } catch (err) {
+        return done(err);
       }
     }),
   );
@@ -64,109 +66,77 @@ export function setupAuth(app: Express) {
     try {
       const user = await storage.getUser(id);
       done(null, user);
-    } catch (error) {
-      done(error, null);
+    } catch (err) {
+      done(err);
     }
   });
 
-  // Register route
   app.post("/api/register", async (req, res, next) => {
     try {
-      const { username, password, email, firstName, lastName } = req.body;
+      // Validate the user data
+      const userData = insertUserSchema.parse(req.body);
       
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
-      }
-      
-      const existingUser = await storage.getUserByUsername(username);
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(userData.username);
       if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
+        return res.status(400).json({ error: "Username already exists" });
       }
-
+      
+      // Hash the password
+      const hashedPassword = await hashPassword(userData.password);
+      
+      // Create the user with hashed password
       const user = await storage.createUser({
-        username,
-        password: await hashPassword(password),
-        email,
-        firstName,
-        lastName,
-        role: "user", // Default role
+        ...userData,
+        password: hashedPassword,
       });
 
-      // Create an activity for the new user registration
-      await storage.createActivity({
-        userId: user.id,
-        type: "user_registered",
-        description: "New user registered",
-        timestamp: new Date(),
-        relatedId: user.id,
-        metadata: null
-      });
-
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      
+      // Login the user
       req.login(user, (err) => {
         if (err) return next(err);
-        // Don't send the password back to the client
-        const { password, ...userWithoutPassword } = user;
         res.status(201).json(userWithoutPassword);
       });
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const validationError = fromZodError(err);
+        res.status(400).json({ error: validationError.message });
+      } else {
+        next(err);
+      }
     }
   });
 
-  // Login route
   app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", (err, user, info) => {
       if (err) return next(err);
-      if (!user) return res.status(401).json({ message: "Invalid username or password" });
+      if (!user) {
+        return res.status(401).json({ error: info?.message || "Invalid username or password" });
+      }
       
-      req.login(user, async (err) => {
+      req.login(user, (err) => {
         if (err) return next(err);
         
-        // Create login activity
-        await storage.createActivity({
-          userId: user.id,
-          type: "user_login",
-          description: "User logged in",
-          timestamp: new Date(),
-          relatedId: user.id,
-          metadata: null
-        });
-        
-        // Don't send the password back to the client
+        // Remove password from response
         const { password, ...userWithoutPassword } = user;
-        res.status(200).json(userWithoutPassword);
+        res.json(userWithoutPassword);
       });
     })(req, res, next);
   });
 
-  // Logout route
   app.post("/api/logout", (req, res, next) => {
-    const userId = req.user?.id;
-    
     req.logout((err) => {
       if (err) return next(err);
-      
-      // Create logout activity if we had a user
-      if (userId) {
-        storage.createActivity({
-          userId,
-          type: "user_logout",
-          description: "User logged out",
-          timestamp: new Date(),
-          relatedId: userId,
-          metadata: null
-        });
-      }
-      
       res.sendStatus(200);
     });
   });
 
-  // Get current user route
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    if (!req.isAuthenticated()) return res.status(401).send("Unauthorized");
     
-    // Don't send the password back to the client
+    // Remove password from response
     const { password, ...userWithoutPassword } = req.user;
     res.json(userWithoutPassword);
   });

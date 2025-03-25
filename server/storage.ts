@@ -1,47 +1,37 @@
-import { 
-  users, type User, type InsertUser,
-  vehicles, type Vehicle, type InsertVehicle,
-  parkingSpots, type ParkingSpot, type InsertParkingSpot,
-  locations, type Location, type InsertLocation,
-  bookings, type Booking, type InsertBooking,
-  activities, type Activity, type InsertActivity
-} from "@shared/schema";
+import { users, vehicles, parkingFacilities, parkingSpots, bookings } from "@shared/schema";
+import type { User, InsertUser, Vehicle, InsertVehicle, ParkingFacility, ParkingSpot, Booking, InsertBooking } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
 const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
-  // User methods
+  // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
-  // Vehicle methods
-  getVehicle(id: number): Promise<Vehicle | undefined>;
+  // Vehicle operations
   getVehiclesByUserId(userId: number): Promise<Vehicle[]>;
+  getVehicle(id: number): Promise<Vehicle | undefined>;
   createVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
   
-  // Location methods
-  getLocation(id: number): Promise<Location | undefined>;
-  getAllLocations(): Promise<Location[]>;
-  createLocation(location: InsertLocation): Promise<Location>;
+  // Parking facility operations
+  getAllFacilities(): Promise<ParkingFacility[]>;
+  getFacility(id: number): Promise<ParkingFacility | undefined>;
   
-  // Parking spot methods
-  getParkingSpot(id: number): Promise<ParkingSpot | undefined>;
-  getParkingSpotsByLocation(locationId: number): Promise<ParkingSpot[]>;
-  updateParkingSpotStatus(id: number, status: string): Promise<ParkingSpot | undefined>;
-  createParkingSpot(spot: InsertParkingSpot): Promise<ParkingSpot>;
+  // Parking spot operations
+  getSpotsByFacility(facilityId: number): Promise<ParkingSpot[]>;
+  getAvailableSpots(facilityId: number): Promise<ParkingSpot[]>;
+  updateSpotStatus(id: number, status: string): Promise<ParkingSpot | undefined>;
+  getSpot(id: number): Promise<ParkingSpot | undefined>;
   
-  // Booking methods
-  getBooking(id: number): Promise<Booking | undefined>;
-  getBookingsByUserId(userId: number): Promise<Booking[]>;
+  // Booking operations
   createBooking(booking: InsertBooking): Promise<Booking>;
-  updateBookingStatus(id: number, status: string): Promise<Booking | undefined>;
-  
-  // Activity methods
-  getRecentActivities(limit: number): Promise<Activity[]>;
-  createActivity(activity: InsertActivity): Promise<Activity>;
+  getBookingsByUser(userId: number): Promise<Booking[]>;
+  getActiveBookingsByUser(userId: number): Promise<Booking[]>;
+  getRecentBookings(limit: number): Promise<Booking[]>;
+  getBooking(id: number): Promise<Booking | undefined>;
   
   // Session store
   sessionStore: session.SessionStore;
@@ -50,70 +40,67 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private vehicles: Map<number, Vehicle>;
-  private locations: Map<number, Location>;
-  private parkingSpots: Map<number, ParkingSpot>;
+  private facilities: Map<number, ParkingFacility>;
+  private spots: Map<number, ParkingSpot>;
   private bookings: Map<number, Booking>;
-  private activities: Map<number, Activity>;
+  
+  sessionStore: session.SessionStore;
   
   private userIdCounter: number;
   private vehicleIdCounter: number;
-  private locationIdCounter: number;
-  private parkingSpotIdCounter: number;
+  private facilityIdCounter: number;
+  private spotIdCounter: number;
   private bookingIdCounter: number;
-  private activityIdCounter: number;
-  
-  sessionStore: session.SessionStore;
 
   constructor() {
     this.users = new Map();
     this.vehicles = new Map();
-    this.locations = new Map();
-    this.parkingSpots = new Map();
+    this.facilities = new Map();
+    this.spots = new Map();
     this.bookings = new Map();
-    this.activities = new Map();
     
     this.userIdCounter = 1;
     this.vehicleIdCounter = 1;
-    this.locationIdCounter = 1;
-    this.parkingSpotIdCounter = 1;
+    this.facilityIdCounter = 1;
+    this.spotIdCounter = 1;
     this.bookingIdCounter = 1;
-    this.activityIdCounter = 1;
     
     this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
+      checkPeriod: 86400000, // 24h
     });
     
-    // Initialize with sample data
-    this.initializeSampleData();
+    // Seed data
+    this.seedData();
   }
-
-  // User methods
+  
+  // User operations
   async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+      (user) => user.username.toLowerCase() === username.toLowerCase(),
     );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
+    const timestamp = new Date();
+    const user: User = { ...insertUser, id, createdAt: timestamp };
     this.users.set(id, user);
     return user;
   }
   
-  // Vehicle methods
-  async getVehicle(id: number): Promise<Vehicle | undefined> {
-    return this.vehicles.get(id);
-  }
-  
+  // Vehicle operations
   async getVehiclesByUserId(userId: number): Promise<Vehicle[]> {
     return Array.from(this.vehicles.values()).filter(
-      (vehicle) => vehicle.userId === userId
+      (vehicle) => vehicle.userId === userId,
     );
+  }
+  
+  async getVehicle(id: number): Promise<Vehicle | undefined> {
+    return this.vehicles.get(id);
   }
   
   async createVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
@@ -123,190 +110,145 @@ export class MemStorage implements IStorage {
     return vehicle;
   }
   
-  // Location methods
-  async getLocation(id: number): Promise<Location | undefined> {
-    return this.locations.get(id);
+  // Parking facility operations
+  async getAllFacilities(): Promise<ParkingFacility[]> {
+    return Array.from(this.facilities.values());
   }
   
-  async getAllLocations(): Promise<Location[]> {
-    return Array.from(this.locations.values());
+  async getFacility(id: number): Promise<ParkingFacility | undefined> {
+    return this.facilities.get(id);
   }
   
-  async createLocation(insertLocation: InsertLocation): Promise<Location> {
-    const id = this.locationIdCounter++;
-    const location: Location = { ...insertLocation, id };
-    this.locations.set(id, location);
-    return location;
-  }
-  
-  // Parking spot methods
-  async getParkingSpot(id: number): Promise<ParkingSpot | undefined> {
-    return this.parkingSpots.get(id);
-  }
-  
-  async getParkingSpotsByLocation(locationId: number): Promise<ParkingSpot[]> {
-    return Array.from(this.parkingSpots.values()).filter(
-      (spot) => spot.locationId === locationId
+  // Parking spot operations
+  async getSpotsByFacility(facilityId: number): Promise<ParkingSpot[]> {
+    return Array.from(this.spots.values()).filter(
+      (spot) => spot.facilityId === facilityId,
     );
   }
   
-  async updateParkingSpotStatus(id: number, status: string): Promise<ParkingSpot | undefined> {
-    const spot = this.parkingSpots.get(id);
-    if (spot) {
-      const updatedSpot = { ...spot, status };
-      this.parkingSpots.set(id, updatedSpot);
-      return updatedSpot;
-    }
-    return undefined;
-  }
-  
-  async createParkingSpot(insertSpot: InsertParkingSpot): Promise<ParkingSpot> {
-    const id = this.parkingSpotIdCounter++;
-    const spot: ParkingSpot = { ...insertSpot, id };
-    this.parkingSpots.set(id, spot);
-    return spot;
-  }
-  
-  // Booking methods
-  async getBooking(id: number): Promise<Booking | undefined> {
-    return this.bookings.get(id);
-  }
-  
-  async getBookingsByUserId(userId: number): Promise<Booking[]> {
-    return Array.from(this.bookings.values()).filter(
-      (booking) => booking.userId === userId
+  async getAvailableSpots(facilityId: number): Promise<ParkingSpot[]> {
+    return Array.from(this.spots.values()).filter(
+      (spot) => spot.facilityId === facilityId && spot.status === 'available',
     );
   }
   
+  async updateSpotStatus(id: number, status: string): Promise<ParkingSpot | undefined> {
+    const spot = this.spots.get(id);
+    if (!spot) return undefined;
+    
+    const updatedSpot: ParkingSpot = { ...spot, status };
+    this.spots.set(id, updatedSpot);
+    return updatedSpot;
+  }
+  
+  async getSpot(id: number): Promise<ParkingSpot | undefined> {
+    return this.spots.get(id);
+  }
+  
+  // Booking operations
   async createBooking(insertBooking: InsertBooking): Promise<Booking> {
     const id = this.bookingIdCounter++;
-    const booking: Booking = { ...insertBooking, id };
+    const timestamp = new Date();
+    const booking: Booking = { ...insertBooking, id, createdAt: timestamp };
     this.bookings.set(id, booking);
     
-    // Update parking spot status
-    await this.updateParkingSpotStatus(booking.spotId, "occupied");
+    // Update spot status to reserved
+    await this.updateSpotStatus(insertBooking.spotId, 'reserved');
     
     return booking;
   }
   
-  async updateBookingStatus(id: number, status: string): Promise<Booking | undefined> {
-    const booking = this.bookings.get(id);
-    if (booking) {
-      const updatedBooking = { ...booking, status };
-      this.bookings.set(id, updatedBooking);
-      
-      // If completed, update parking spot status back to available
-      if (status === "completed") {
-        await this.updateParkingSpotStatus(booking.spotId, "available");
-      }
-      
-      return updatedBooking;
-    }
-    return undefined;
+  async getBookingsByUser(userId: number): Promise<Booking[]> {
+    return Array.from(this.bookings.values())
+      .filter(booking => booking.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
   
-  // Activity methods
-  async getRecentActivities(limit: number): Promise<Activity[]> {
-    return Array.from(this.activities.values())
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+  async getActiveBookingsByUser(userId: number): Promise<Booking[]> {
+    return Array.from(this.bookings.values())
+      .filter(booking => booking.userId === userId && booking.status === 'active')
+      .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
+  }
+  
+  async getRecentBookings(limit: number): Promise<Booking[]> {
+    return Array.from(this.bookings.values())
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, limit);
   }
   
-  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
-    const id = this.activityIdCounter++;
-    const activity: Activity = { 
-      ...insertActivity, 
-      id,
-      timestamp: insertActivity.timestamp || new Date()
-    };
-    this.activities.set(id, activity);
-    return activity;
+  async getBooking(id: number): Promise<Booking | undefined> {
+    return this.bookings.get(id);
   }
   
-  // Sample data initialization
-  private async initializeSampleData() {
-    // Create default locations
-    const downtownGarage = await this.createLocation({
-      name: "Downtown Garage",
-      address: "123 Main St, Downtown",
-      totalSpots: 50,
-      hourlyRate: 250, // $2.50 per hour
-    });
-    
-    const centralMall = await this.createLocation({
-      name: "Central Mall Parking",
-      address: "456 Market St, Center City",
+  // Seed initial data
+  private seedData() {
+    // Create sample facilities
+    const downtown: ParkingFacility = {
+      id: this.facilityIdCounter++,
+      name: 'Downtown Parking Facility',
+      address: '123 Main St, Downtown',
       totalSpots: 100,
-      hourlyRate: 300, // $3.00 per hour
-    });
+      hourlyRate: 250, // $2.50
+      fullDayRate: 1800, // $18.00
+      hasEVCharging: true
+    };
     
-    const airportTerminal = await this.createLocation({
-      name: "Airport Terminal P3",
-      address: "789 Airport Blvd, Runway City",
-      totalSpots: 200,
-      hourlyRate: 400, // $4.00 per hour
-    });
+    const westSide: ParkingFacility = {
+      id: this.facilityIdCounter++,
+      name: 'West Side Garage',
+      address: '456 West Blvd, West District',
+      totalSpots: 75,
+      hourlyRate: 200, // $2.00
+      fullDayRate: 1500, // $15.00
+      hasEVCharging: false
+    };
     
-    // Create parking spots for each location
-    for (let i = 1; i <= 20; i++) {
-      const status = Math.random() > 0.6 ? "available" : "occupied";
-      await this.createParkingSpot({
-        locationId: downtownGarage.id,
-        spotNumber: `A${i}`,
-        status,
-        sensorId: `DT-A${i}`,
-      });
-    }
+    this.facilities.set(downtown.id, downtown);
+    this.facilities.set(westSide.id, westSide);
     
-    for (let i = 1; i <= 20; i++) {
-      const status = Math.random() > 0.5 ? "available" : "occupied";
-      await this.createParkingSpot({
-        locationId: centralMall.id,
-        spotNumber: `B${i}`,
-        status,
-        sensorId: `CM-B${i}`,
-      });
-    }
+    // Create parking spots for downtown facility
+    const spotTypes = ['standard', 'premium', 'handicap', 'ev'];
+    const sections = ['A', 'B', 'C'];
     
-    for (let i = 1; i <= 20; i++) {
-      const status = Math.random() > 0.7 ? "available" : "occupied";
-      await this.createParkingSpot({
-        locationId: airportTerminal.id,
-        spotNumber: `C${i}`,
-        status,
-        sensorId: `AT-C${i}`,
-      });
-    }
-    
-    // Create sample activities
-    const activityTypes = ["spot_occupied", "spot_available", "booking_created", "payment_processed"];
-    for (let i = 0; i < 10; i++) {
-      const type = activityTypes[Math.floor(Math.random() * activityTypes.length)];
-      let description = "";
+    for (let i = 1; i <= downtown.totalSpots; i++) {
+      const section = sections[Math.floor((i - 1) / 35)];
+      const spotNumber = `${section}${i % 35 + 1}`;
+      const spotType = spotTypes[Math.floor(Math.random() * spotTypes.length)];
+      const floor = Math.floor((i - 1) / 50) + 1;
+      const status = Math.random() > 0.7 ? 'available' : 'occupied';
       
-      switch (type) {
-        case "spot_occupied":
-          description = `Vehicle entered spot ${String.fromCharCode(65 + Math.floor(Math.random() * 3))}${Math.floor(Math.random() * 20) + 1}`;
-          break;
-        case "spot_available":
-          description = `Spot ${String.fromCharCode(65 + Math.floor(Math.random() * 3))}${Math.floor(Math.random() * 20) + 1} became available`;
-          break;
-        case "booking_created":
-          description = "New reservation made";
-          break;
-        case "payment_processed":
-          description = "Payment processed";
-          break;
-      }
+      const spot: ParkingSpot = {
+        id: this.spotIdCounter++,
+        facilityId: downtown.id,
+        spotNumber,
+        spotType,
+        status,
+        floor,
+        section,
+      };
       
-      await this.createActivity({
-        userId: null,
-        type,
-        description,
-        timestamp: new Date(Date.now() - Math.floor(Math.random() * 3600000)),
-        relatedId: null,
-        metadata: null,
-      });
+      this.spots.set(spot.id, spot);
+    }
+    
+    // Create parking spots for west side facility
+    for (let i = 1; i <= westSide.totalSpots; i++) {
+      const section = i <= 25 ? 'A' : i <= 50 ? 'B' : 'C';
+      const spotNumber = `${section}${i % 25 + 1}`;
+      const spotType = spotTypes[Math.floor(Math.random() * spotTypes.length)];
+      const floor = 1;
+      const status = Math.random() > 0.6 ? 'available' : 'occupied';
+      
+      const spot: ParkingSpot = {
+        id: this.spotIdCounter++,
+        facilityId: westSide.id,
+        spotNumber,
+        spotType,
+        status,
+        floor,
+        section,
+      };
+      
+      this.spots.set(spot.id, spot);
     }
   }
 }

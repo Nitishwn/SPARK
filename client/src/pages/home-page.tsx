@@ -1,136 +1,212 @@
-import React from "react";
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import React from 'react';
+import { Link } from 'wouter';
+import { Navbar } from '@/components/marketing/navbar';
+import { Footer } from '@/components/marketing/footer';
+import { StatCard } from '@/components/marketing/stats-card';
+import { FeatureCard } from '@/components/marketing/feature-card';
+import { HowItWorksStep } from '@/components/marketing/how-it-works-step';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/use-auth';
 import { 
-  Clock, Leaf, CreditCard, 
-  CheckCircle, Zap 
-} from "lucide-react";
+  Search, 
+  Route, 
+  Smartphone, 
+  BarChart, 
+  CreditCard, 
+  Shield,
+  Car
+} from 'lucide-react';
 
 export default function HomePage() {
+  const { user } = useAuth();
+  
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="py-12 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="lg:flex items-center">
-            <div className="lg:w-1/2 mb-12 lg:mb-0">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-                The Future of 
-                <span className="text-primary ml-2">Smart Parking</span>
-                <span className="block mt-2">Is Here</span>
-              </h1>
-              <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8">
-                SPARK integrates IoT, AI, and ADAS technologies to revolutionize urban parking. Find, navigate to, and pay for parking spots—all within one seamless experience.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Link href="/booking">
-                  <Button size="lg">Book a Spot</Button>
-                </Link>
-                <Link href="/how-it-works">
-                  <Button size="lg" variant="outline">How It Works</Button>
-                </Link>
-              </div>
-              <div className="mt-8 flex items-center space-x-4">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center z-30 relative" style={{ zIndex: 30 - i }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 dark:text-gray-300" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  ))}
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section id="home" className="bg-white dark:bg-gray-900 py-12 md:py-24">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col lg:flex-row items-center">
+              <div className="lg:w-1/2 mb-10 lg:mb-0">
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+                  The Future of <span className="text-primary">Smart Parking</span> is Here
+                </h1>
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+                  SPARK uses AI and IoT to solve urban parking challenges. Find, reserve, and navigate to available parking spots in real-time.
+                </p>
+                <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                  <Button size="lg" asChild>
+                    <Link href={user ? "/dashboard" : "/auth"}>
+                      View Dashboard
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="lg" asChild>
+                    <Link href="#how-it-works">
+                      Learn More
+                    </Link>
+                  </Button>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Trusted by <span className="font-semibold">10,000+</span> drivers daily</p>
+              </div>
+              <div className="lg:w-1/2 lg:pl-10">
+                <div className="relative rounded-xl overflow-hidden shadow-xl">
+                  <img 
+                    src="https://images.unsplash.com/photo-1609618277380-8e0cd288cf22?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                    alt="Smart parking system with cars and technology" 
+                    className="w-full h-auto object-cover"
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary text-white">
+                      <Car className="h-3 w-3 mr-1" /> Real-time Parking
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="lg:w-1/2 lg:pl-12">
-              <div className="relative">
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
-                  <img 
-                    src="https://images.unsplash.com/photo-1573348722427-f1d6819fdf98?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" 
-                    alt="Smart parking visualization with AR overlay" 
-                    className="w-full h-full object-cover rounded-xl"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 to-transparent rounded-xl"></div>
-                  <div className="absolute bottom-4 left-4 right-4 p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg shadow-md">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                          </svg>
-                        </div>
-                      </div>
-                      <div className="ml-3">
-                        <h3 className="text-sm font-medium">Nearest Spot Found</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">2 min away • $2.50/hr</p>
-                      </div>
-                      <div className="ml-auto">
-                        <Button size="sm">Navigate</Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="absolute -top-4 -right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 flex items-center">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-2">
-                    <CheckCircle className="h-3 w-3 text-white" />
-                  </div>
-                  <span className="text-xs font-medium">AI-Assisted Parking</span>
-                </div>
-                <div className="absolute -bottom-4 -left-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-3 flex items-center">
-                  <div className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center mr-2">
-                    <Zap className="h-3 w-3 text-white" />
-                  </div>
-                  <span className="text-xs font-medium">Real-time Updates</span>
-                </div>
-              </div>
+            
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-20">
+              <StatCard value="30%" label="Reduction in urban congestion" />
+              <StatCard value="15 min" label="Average time saved per parking" />
+              <StatCard value="99.8%" label="Parking spot detection accuracy" />
+              <StatCard value="50+" label="Cities implementing SPARK" />
             </div>
           </div>
-          
-          {/* Why Choose SPARK Section */}
-          <div className="mt-24">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Why Choose SPARK?</h2>
-              <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                Our integrated solution addresses the most critical urban parking challenges through cutting-edge technology.
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="py-16 bg-gray-50 dark:bg-gray-800">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Smart Features for Smart Cities</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                Our comprehensive solution integrates cutting-edge technology to make parking effortless for drivers and manageable for operators.
               </p>
             </div>
             
-            <div className="grid md:grid-cols-3 gap-8">
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-primary rounded-full flex items-center justify-center mb-4">
-                    <Clock className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Save Time</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Reduce time spent searching for parking spots by up to 70% with our intelligent spot detection system.</p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <FeatureCard 
+                icon={Search} 
+                title="Real-time Spot Detection" 
+                description="IoT sensors and cameras detect available spots instantly, updating the system in real-time."
+                iconColor="text-primary"
+                iconBgColor="bg-blue-100 dark:bg-blue-900/20"
+              />
               
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mb-4">
-                    <Leaf className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Reduce Emissions</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Minimize driving time and idle emissions with direct routing to available parking spaces.</p>
-                </CardContent>
-              </Card>
+              <FeatureCard 
+                icon={Route} 
+                title="Autonomous Navigation" 
+                description="ADAS integration guides vehicles to spots with turn-by-turn directions and automated parking assistance."
+                iconColor="text-green-500"
+                iconBgColor="bg-green-100 dark:bg-green-900/20"
+              />
               
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mb-4">
-                    <CreditCard className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2">Seamless Payments</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Handle parking fees digitally with secure, contactless payment options and automatic receipts.</p>
-                </CardContent>
-              </Card>
+              <FeatureCard 
+                icon={Smartphone} 
+                title="Mobile Integration" 
+                description="Book, pay, and navigate to your spot from our intuitive mobile app – available for iOS and Android."
+                iconColor="text-purple-500"
+                iconBgColor="bg-purple-100 dark:bg-purple-900/20"
+              />
+              
+              <FeatureCard 
+                icon={BarChart} 
+                title="Predictive Analytics" 
+                description="AI algorithms predict parking availability based on historical data, events, and traffic patterns."
+                iconColor="text-yellow-500"
+                iconBgColor="bg-yellow-100 dark:bg-yellow-900/20"
+              />
+              
+              <FeatureCard 
+                icon={CreditCard} 
+                title="Secure Payments" 
+                description="Contactless payment options with encrypted transactions and digital receipts."
+                iconColor="text-red-500"
+                iconBgColor="bg-red-100 dark:bg-red-900/20"
+              />
+              
+              <FeatureCard 
+                icon={Shield} 
+                title="Enhanced Security" 
+                description="Security cameras, license plate recognition, and automated alerts ensure vehicle safety."
+                iconColor="text-indigo-500"
+                iconBgColor="bg-indigo-100 dark:bg-indigo-900/20"
+              />
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* How It Works */}
+        <section id="how-it-works" className="py-16 bg-white dark:bg-gray-900">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">How SPARK Works</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                Our seamless integration of IoT, AI, and ADAS technologies creates a frictionless parking experience.
+              </p>
+            </div>
+            
+            <div className="relative">
+              {/* Process Steps */}
+              <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700 transform -translate-x-1/2"></div>
+              
+              <div className="space-y-12 relative">
+                <HowItWorksStep 
+                  number={1}
+                  title="Detection"
+                  description="IoT sensors and cameras throughout parking facilities continuously monitor spot availability and transmit data to our cloud platform."
+                  imageUrl="https://images.unsplash.com/photo-1553413077-190dd305871c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                  imageAlt="IoT sensors detecting parking spots"
+                />
+                
+                <HowItWorksStep 
+                  number={2}
+                  title="Processing"
+                  description="Our AI algorithms process the collected data to create real-time maps, predict availability, and optimize parking allocations."
+                  imageUrl="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                  imageAlt="AI processing parking data"
+                  isReversed={true}
+                />
+                
+                <HowItWorksStep 
+                  number={3}
+                  title="Navigation"
+                  description="Users receive turn-by-turn directions to their reserved spot through the mobile app, with ADAS integration for compatible vehicles."
+                  imageUrl="https://images.unsplash.com/photo-1484378840990-48ec0c26b510?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                  imageAlt="Navigation to parking spot"
+                />
+                
+                <HowItWorksStep 
+                  number={4}
+                  title="Monitoring & Management"
+                  description="Facility managers use our dashboard to monitor occupancy, analyze usage patterns, and optimize parking operations."
+                  imageUrl="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                  imageAlt="Dashboard monitoring"
+                  isReversed={true}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-16 bg-primary bg-opacity-10 dark:bg-opacity-5">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Ready to Transform Your Parking Experience?</h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8">
+              Join thousands of drivers who have already discovered the convenience of SPARK smart parking.
+            </p>
+            <Button size="lg" asChild>
+              <Link href={user ? "/dashboard" : "/auth"}>
+                Get Started Today
+              </Link>
+            </Button>
+          </div>
+        </section>
+      </main>
+      
+      <Footer />
     </div>
   );
 }
