@@ -56,38 +56,38 @@ export function AdasConnectModal({
                 <div className="bg-green-100 dark:bg-green-900/20 rounded-full p-4 mb-4">
                   <Sparkles className="h-8 w-8 text-green-600 dark:text-green-400" />
                 </div>
-                <p className="text-center font-medium text-green-600 dark:text-green-400 mb-2">
+                <div className="text-center font-medium text-green-600 dark:text-green-400 mb-2">
                   ADAS Connected Successfully!
-                </p>
-                <p className="text-center">
+                </div>
+                <div className="text-center">
                   Starting navigation to spot {selectedSpot?.spotNumber}...
-                </p>
+                </div>
               </div>
             ) : isConnecting ? (
               <div className="flex flex-col items-center justify-center py-4">
                 <div className="animate-pulse bg-blue-100 dark:bg-blue-900/20 rounded-full p-4 mb-4">
                   <Car className="h-8 w-8 text-blue-600 dark:text-blue-400 animate-bounce" />
                 </div>
-                <p className="text-center">
+                <div className="text-center">
                   Connecting to vehicle ADAS system...
-                </p>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
-                <p>
+                <div>
                   We've detected that you've entered the parking facility. Would you like to connect your vehicle's ADAS system to navigate to your reserved spot?
-                </p>
+                </div>
                 {selectedSpot && (
                   <div className="bg-primary/10 dark:bg-primary/5 rounded-lg p-4 my-4">
                     <div className="flex items-start space-x-3">
                       <Route className="h-5 w-5 text-primary mt-1" />
                       <div>
-                        <h4 className="font-medium">Your reserved spot:</h4>
-                        <p className="text-sm">Spot #{selectedSpot.spotNumber}</p>
-                        <p className="text-sm">Floor {selectedSpot.floor}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <div className="font-medium">Your reserved spot:</div>
+                        <div className="text-sm">Spot #{selectedSpot.spotNumber}</div>
+                        <div className="text-sm">Floor {selectedSpot.floor}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
                           Approximately 120m from current location
-                        </p>
+                        </div>
                       </div>
                     </div>
                   </div>
