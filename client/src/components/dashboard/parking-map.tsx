@@ -30,31 +30,51 @@ export function ParkingMap({ spots, selectedFacility, onSpotSelect }: ParkingMap
     <Card className="mb-6">
       <CardContent className="p-0">
         <div className="flex flex-col lg:flex-row">
-          <div className="lg:w-3/4 h-96 bg-gray-100 dark:bg-gray-800 relative">
+          <div className="lg:w-3/4 h-[400px] bg-gray-100 dark:bg-gray-800 relative">
             {/* Map visualization */}
-            <div className="w-full h-full p-4 overflow-auto">
-              {Object.entries(spotsBySection).map(([section, sectionSpots]) => (
-                <div key={section} className="mb-6">
-                  <h3 className="text-lg font-semibold mb-2">Section {section}</h3>
-                  <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
-                    {sectionSpots.map(spot => (
-                      <div 
-                        key={spot.id}
-                        className={`
-                          w-12 h-12 rounded border flex items-center justify-center cursor-pointer
-                          ${spot.status === 'available' ? 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300' :
-                            spot.status === 'occupied' ? 'bg-red-100 dark:bg-red-900/30 border-red-500 text-red-700 dark:text-red-300' :
-                            spot.status === 'reserved' ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-500 text-yellow-700 dark:text-yellow-300' :
-                            'bg-gray-200 dark:bg-gray-700 border-gray-500 text-gray-700 dark:text-gray-300'}
-                        `}
-                        onClick={() => onSpotSelect && spot.status === 'available' && onSpotSelect(spot)}
-                      >
-                        {spot.spotNumber}
-                      </div>
-                    ))}
+            <div className="w-full h-full p-8 overflow-auto flex flex-col items-center justify-center">
+              {Object.keys(spotsBySection).length === 0 ? (
+                <div className="text-center text-gray-500 dark:text-gray-400 mb-4">
+                  <div className="bg-gray-200 dark:bg-gray-700 p-6 rounded-lg">
+                    <p className="text-lg">No parking spots available in this view.</p>
+                    <p className="text-sm mt-2">Try selecting a different facility or refreshing the page.</p>
                   </div>
                 </div>
-              ))}
+              ) : (
+                Object.entries(spotsBySection).map(([section, sectionSpots]) => (
+                  <div key={section} className="mb-8 w-full max-w-4xl">
+                    <div className="flex items-center mb-3">
+                      <div className="bg-primary/10 dark:bg-primary/20 px-3 py-1 rounded-md">
+                        <h3 className="text-lg font-semibold">Section {section || "Main"}</h3>
+                      </div>
+                      <div className="h-[2px] flex-grow ml-4 bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4">
+                      {sectionSpots.map(spot => (
+                        <div 
+                          key={spot.id}
+                          className={`
+                            w-16 h-16 rounded-lg border-2 flex flex-col items-center justify-center cursor-pointer transition-all
+                            hover:scale-105 hover:shadow-md
+                            ${spot.status === 'available' ? 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-300' :
+                              spot.status === 'occupied' ? 'bg-red-100 dark:bg-red-900/30 border-red-500 text-red-700 dark:text-red-300' :
+                              spot.status === 'reserved' ? 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-500 text-yellow-700 dark:text-yellow-300' :
+                              'bg-gray-200 dark:bg-gray-700 border-gray-500 text-gray-700 dark:text-gray-300'}
+                          `}
+                          onClick={() => onSpotSelect && spot.status === 'available' && onSpotSelect(spot)}
+                        >
+                          <span className="font-bold">{spot.spotNumber}</span>
+                          <span className="text-xs">
+                            {spot.status === 'available' ? 'Free' : 
+                             spot.status === 'occupied' ? 'Taken' : 
+                             spot.status === 'reserved' ? 'Reserved' : spot.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
             
             {/* Map Overlay Elements */}

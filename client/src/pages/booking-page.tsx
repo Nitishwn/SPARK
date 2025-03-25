@@ -5,8 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { ParkingFacility, ParkingSpot, Vehicle } from '@shared/schema';
 import { BookingForm } from '@/components/forms/booking-form';
 import { ParkingMap } from '@/components/dashboard/parking-map';
-import { AdasConnectModal } from '@/components/dashboard/adas-connect-modal';
-import { AdasNavigation } from '@/components/dashboard/adas-navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Tabs,
@@ -23,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Plus, Car, Navigation } from 'lucide-react';
+import { Plus, Car as CarIcon, Route as RouteIcon, Sparkles, Navigation } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -34,6 +32,16 @@ import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { insertVehicleSchema } from '@shared/schema';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Price card information
 const pricingInfo = [
@@ -43,6 +51,228 @@ const pricingInfo = [
   { type: 'Monthly Pass', price: '$150.00' },
   { type: 'EV Charging', price: '$0.30/kWh' },
 ];
+
+// ADAS Navigation Component
+function AdasNavigation({ spot, onComplete }: { spot?: ParkingSpot; onComplete: () => void }) {
+  const [progress, setProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+  
+  const navigationSteps = [
+    { instruction: `Proceed to Floor ${spot?.floor || 1}`, distance: "80m" },
+    { instruction: "Turn right at junction B", distance: "30m" },
+    { instruction: "Continue straight to Row C", distance: "40m" },
+    { instruction: `Park at Spot #${spot?.spotNumber || "A1"}`, distance: "10m" }
+  ];
+  
+  // Simulate navigation progress
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress(prev => {
+        const newProgress = Math.min(prev + 5, 100);
+        
+        // Update current step based on progress
+        const stepProgress = (newProgress / 100) * navigationSteps.length;
+        const newStep = Math.min(Math.floor(stepProgress), navigationSteps.length - 1);
+        setCurrentStep(newStep);
+        
+        if (newProgress >= 100) {
+          clearInterval(timer);
+          setIsComplete(true);
+          setTimeout(() => {
+            onComplete();
+          }, 2000);
+        }
+        
+        return newProgress;
+      });
+    }, 500);
+    
+    return () => clearInterval(timer);
+  }, []);
+  
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="bg-primary/5">
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center text-lg">
+            <Navigation className="h-5 w-5 text-primary mr-2" />
+            ADAS Navigation
+          </CardTitle>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Connected</span>
+          </div>
+        </div>
+        <CardDescription>
+          Navigating to Spot #{spot?.spotNumber || "A1"} on Floor {spot?.floor || 1}
+        </CardDescription>
+      </CardHeader>
+      
+      <CardContent className="pt-6">
+        <div className="relative h-2 mb-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div 
+            className="absolute top-0 left-0 h-full bg-primary transition-all duration-300 rounded-full"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+        
+        <div className="space-y-3">
+          {navigationSteps.map((step, index) => (
+            <div 
+              key={index} 
+              className={`p-3 rounded-lg border transition-colors ${
+                index === currentStep && !isComplete 
+                  ? "bg-primary/5 border-primary/20" 
+                  : index < currentStep || isComplete
+                    ? "bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-900/20" 
+                    : "border-gray-200 dark:border-gray-800"
+              }`}
+            >
+              <div className="flex items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                  index === currentStep && !isComplete 
+                    ? "bg-primary/10 text-primary" 
+                    : index < currentStep || isComplete
+                      ? "bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-300" 
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-400"
+                }`}>
+                  {index < currentStep || isComplete ? "✓" : index + 1}
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">{step.instruction}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {index < currentStep || isComplete 
+                      ? "Completed" 
+                      : index === currentStep && !isComplete 
+                        ? `${step.distance} - Current` 
+                        : step.distance
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {isComplete && (
+          <div className="mt-6 bg-green-50 dark:bg-green-900/10 p-4 rounded-lg text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-300 mb-3">
+              <CarIcon className="h-6 w-6" />
+            </div>
+            <h3 className="text-lg font-medium text-green-600 dark:text-green-300 mb-1">
+              You have arrived!
+            </h3>
+            <p className="text-sm text-green-600/70 dark:text-green-300/70">
+              Successfully parked at Spot #{spot?.spotNumber || "A1"}
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ADAS Connection Modal Component
+function AdasConnectModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  selectedSpot 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onConfirm: () => void; 
+  selectedSpot?: ParkingSpot;
+}) {
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+
+  const handleConnect = () => {
+    setIsConnecting(true);
+    // Simulate connection process
+    setTimeout(() => {
+      setIsConnecting(false);
+      setIsConnected(true);
+      // After showing connected status, proceed with navigation
+      setTimeout(() => {
+        onConfirm();
+      }, 1500);
+    }, 2000);
+  };
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent className="sm:max-w-md">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <CarIcon className="h-5 w-5 text-primary" />
+            ADAS Connection Request
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {isConnected ? (
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="bg-green-100 dark:bg-green-900/20 rounded-full p-4 mb-4">
+                  <Sparkles className="h-8 w-8 text-green-600 dark:text-green-400" />
+                </div>
+                <p className="text-center font-medium text-green-600 dark:text-green-400 mb-2">
+                  ADAS Connected Successfully!
+                </p>
+                <p className="text-center">
+                  Starting navigation to spot {selectedSpot?.spotNumber}...
+                </p>
+              </div>
+            ) : isConnecting ? (
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="animate-pulse bg-blue-100 dark:bg-blue-900/20 rounded-full p-4 mb-4">
+                  <CarIcon className="h-8 w-8 text-blue-600 dark:text-blue-400 animate-bounce" />
+                </div>
+                <p className="text-center">
+                  Connecting to vehicle ADAS system...
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p>
+                  We've detected that you've entered the parking facility. Would you like to connect your vehicle's ADAS system to navigate to your reserved spot?
+                </p>
+                {selectedSpot && (
+                  <div className="bg-primary/10 dark:bg-primary/5 rounded-lg p-4 my-4">
+                    <div className="flex items-start space-x-3">
+                      <RouteIcon className="h-5 w-5 text-primary mt-1" />
+                      <div>
+                        <h4 className="font-medium">Your reserved spot:</h4>
+                        <p className="text-sm">Spot #{selectedSpot.spotNumber}</p>
+                        <p className="text-sm">Floor {selectedSpot.floor}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Approximately 120m from current location
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="flex-col sm:flex-row sm:justify-end gap-2">
+          {!isConnecting && !isConnected && (
+            <>
+              <AlertDialogCancel asChild>
+                <Button variant="outline" onClick={onClose}>Decline</Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button onClick={handleConnect}>
+                  <CarIcon className="mr-2 h-4 w-4" />
+                  Connect ADAS
+                </Button>
+              </AlertDialogAction>
+            </>
+          )}
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
 
 export default function BookingPage() {
   const { user } = useAuth();
@@ -238,7 +468,7 @@ export default function BookingPage() {
                   </div>
                   
                   <TabsContent value="map" className="m-0">
-                    <div className="h-[300px]">
+                    <div className="h-[400px]">
                       <ParkingMap 
                         spots={spots}
                         selectedFacility={selectedFacility}
@@ -386,7 +616,6 @@ export default function BookingPage() {
                           const value = e.target.value;
                           field.onChange(value === '' ? undefined : parseInt(value, 10));
                         }}
-                        // Convert null to undefined to avoid type errors
                         value={field.value === null ? undefined : field.value}
                         placeholder="2023"
                       />
@@ -405,7 +634,7 @@ export default function BookingPage() {
                     <>Adding Vehicle...</>
                   ) : (
                     <>
-                      <Car className="h-4 w-4 mr-2" />
+                      <CarIcon className="h-4 w-4 mr-2" />
                       Add Vehicle
                     </>
                   )}
