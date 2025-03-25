@@ -217,48 +217,36 @@ function AdasConnectModal({
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             <CarIcon className="h-5 w-5 text-primary" />
-            ADAS Connection Request
+            Enable Navigation
           </AlertDialogTitle>
           <AlertDialogDescription>
             {isConnected ? (
               <div className="flex flex-col items-center justify-center py-4">
-                <div className="bg-green-100 dark:bg-green-900/20 rounded-full p-4 mb-4">
+                <div className="bg-green-100 dark:bg-green-900/20 rounded-full p-4 mb-2">
                   <Sparkles className="h-8 w-8 text-green-600 dark:text-green-400" />
                 </div>
-                <p className="text-center font-medium text-green-600 dark:text-green-400 mb-2">
-                  ADAS Connected Successfully!
-                </p>
-                <p className="text-center">
-                  Starting navigation to spot {selectedSpot?.spotNumber}...
+                <p className="text-center font-medium text-green-600 dark:text-green-400">
+                  Connected! Starting navigation...
                 </p>
               </div>
             ) : isConnecting ? (
               <div className="flex flex-col items-center justify-center py-4">
-                <div className="animate-pulse bg-blue-100 dark:bg-blue-900/20 rounded-full p-4 mb-4">
+                <div className="animate-pulse bg-blue-100 dark:bg-blue-900/20 rounded-full p-4 mb-2">
                   <CarIcon className="h-8 w-8 text-blue-600 dark:text-blue-400 animate-bounce" />
                 </div>
                 <p className="text-center">
-                  Connecting to vehicle ADAS system...
+                  Connecting...
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-2">
                 <p>
-                  We've detected that you've entered the parking facility. Would you like to connect your vehicle's ADAS system to navigate to your reserved spot?
+                  Would you like navigation assistance to your parking spot?
                 </p>
                 {selectedSpot && (
-                  <div className="bg-primary/10 dark:bg-primary/5 rounded-lg p-4 my-4">
-                    <div className="flex items-start space-x-3">
-                      <RouteIcon className="h-5 w-5 text-primary mt-1" />
-                      <div>
-                        <h4 className="font-medium">Your reserved spot:</h4>
-                        <p className="text-sm">Spot #{selectedSpot.spotNumber}</p>
-                        <p className="text-sm">Floor {selectedSpot.floor}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Approximately 120m from current location
-                        </p>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2 text-primary">
+                    <RouteIcon className="h-5 w-5" />
+                    <span>Spot #{selectedSpot.spotNumber}, Floor {selectedSpot.floor}</span>
                   </div>
                 )}
               </div>
@@ -269,12 +257,12 @@ function AdasConnectModal({
           {!isConnecting && !isConnected && (
             <>
               <AlertDialogCancel asChild>
-                <Button variant="outline" onClick={onClose}>Decline</Button>
+                <Button variant="outline" onClick={onClose}>Skip</Button>
               </AlertDialogCancel>
               <AlertDialogAction asChild>
                 <Button onClick={handleConnect}>
-                  <CarIcon className="mr-2 h-4 w-4" />
-                  Connect ADAS
+                  <RouteIcon className="mr-2 h-4 w-4" />
+                  Navigate Me
                 </Button>
               </AlertDialogAction>
             </>
@@ -327,10 +315,10 @@ export default function BookingPage() {
   const form = useForm<z.infer<typeof addVehicleSchema>>({
     resolver: zodResolver(addVehicleSchema),
     defaultValues: {
-      licensePlate: '',
-      make: '',
-      model: '',
-      year: undefined,
+      licensePlate: 'ABC-1234',
+      make: 'Toyota',
+      model: 'Camry',
+      year: 2022,
     },
   });
   
@@ -366,13 +354,17 @@ export default function BookingPage() {
   // Quick booking mutation
   const quickBookMutation = useMutation({
     mutationFn: async (values: BookingFormValues) => {
+      const startTime = new Date(`${values.date}T${values.time}`);
+      const endTime = addHours(startTime, parseInt(values.duration));
+      
       const res = await apiRequest('POST', '/api/bookings', {
         vehicleId: parseInt(values.vehicleId),
         spotId: parseInt(values.spotId || '0'),
-        startTime: new Date(`${values.date}T${values.time}`),
-        endTime: addHours(new Date(`${values.date}T${values.time}`), parseInt(values.duration)),
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
         totalAmount: 1000,
         paymentStatus: 'pending',
+        status: 'active'
       });
       return res.json();
     },

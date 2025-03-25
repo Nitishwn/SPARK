@@ -139,14 +139,14 @@ function SidebarItem({ href, icon: Icon, label, active, collapsed }: SidebarItem
   return (
     <li>
       <Link href={href}>
-        <a className={`flex items-center p-2 rounded-md ${
+        <div className={`flex items-center p-2 rounded-md cursor-pointer ${
           active 
             ? 'bg-blue-50 dark:bg-blue-900/20 text-primary'
             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
         }`}>
           <Icon className="w-5 h-5 mr-3" />
           {!collapsed && <span>{label}</span>}
-        </a>
+        </div>
       </Link>
     </li>
   );

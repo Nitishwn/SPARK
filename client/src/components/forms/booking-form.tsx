@@ -69,6 +69,13 @@ export function BookingForm({ selectedSpot, onSuccess }: BookingFormProps) {
     },
   });
   
+  // Set default vehicleId when vehicles are loaded
+  React.useEffect(() => {
+    if (vehicles && vehicles.length > 0 && form.getValues('vehicleId') === '') {
+      form.setValue('vehicleId', vehicles[0].id.toString());
+    }
+  }, [vehicles, form]);
+  
   const bookingMutation = useMutation({
     mutationFn: async (values: BookingFormValues) => {
       const startTime = new Date(`${values.date}T${values.time}`);
@@ -79,10 +86,11 @@ export function BookingForm({ selectedSpot, onSuccess }: BookingFormProps) {
         spotId: values.spotId 
           ? parseInt(values.spotId) 
           : 0, // This would need to find an available spot in a real app
-        startTime,
-        endTime,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
         totalAmount: 1000, // $10.00, would be calculated based on duration and facility rates
         paymentStatus: 'pending',
+        status: 'active'
       };
       
       const res = await apiRequest('POST', '/api/bookings', bookingData);
