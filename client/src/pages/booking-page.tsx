@@ -68,25 +68,25 @@ function AdasNavigation({ spot, onComplete }: { spot?: ParkingSpot; onComplete: 
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
-  
+
   const navigationSteps = [
     { instruction: `Proceed to Floor ${spot?.floor || 1}`, distance: "80m" },
     { instruction: "Turn right at junction B", distance: "30m" },
     { instruction: "Continue straight to Row C", distance: "40m" },
     { instruction: `Park at Spot #${spot?.spotNumber || "A1"}`, distance: "10m" }
   ];
-  
+
   // Simulate navigation progress
   React.useEffect(() => {
     const timer = setInterval(() => {
       setProgress(prev => {
         const newProgress = Math.min(prev + 5, 100);
-        
+
         // Update current step based on progress
         const stepProgress = (newProgress / 100) * navigationSteps.length;
         const newStep = Math.min(Math.floor(stepProgress), navigationSteps.length - 1);
         setCurrentStep(newStep);
-        
+
         if (newProgress >= 100) {
           clearInterval(timer);
           setIsComplete(true);
@@ -94,14 +94,14 @@ function AdasNavigation({ spot, onComplete }: { spot?: ParkingSpot; onComplete: 
             onComplete();
           }, 2000);
         }
-        
+
         return newProgress;
       });
     }, 500);
-    
+
     return () => clearInterval(timer);
   }, []);
-  
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="bg-primary/5">
@@ -118,7 +118,7 @@ function AdasNavigation({ spot, onComplete }: { spot?: ParkingSpot; onComplete: 
           Navigating to Spot #{spot?.spotNumber || "A1"} on Floor {spot?.floor || 1}
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="pt-6">
         <div className="relative h-2 mb-6 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div 
@@ -126,7 +126,7 @@ function AdasNavigation({ spot, onComplete }: { spot?: ParkingSpot; onComplete: 
             style={{ width: `${progress}%` }}
           ></div>
         </div>
-        
+
         <div className="space-y-3">
           {navigationSteps.map((step, index) => (
             <div 
@@ -164,7 +164,7 @@ function AdasNavigation({ spot, onComplete }: { spot?: ParkingSpot; onComplete: 
             </div>
           ))}
         </div>
-        
+
         {isComplete && (
           <div className="mt-6 bg-green-50 dark:bg-green-900/10 p-4 rounded-lg text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-300 mb-3">
@@ -281,36 +281,36 @@ export default function BookingPage() {
   const [addVehicleDialogOpen, setAddVehicleDialogOpen] = useState(false);
   const [adasModalOpen, setAdasModalOpen] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
-  
+
   // Fetch facilities
   const { data: facilities = [] } = useQuery<ParkingFacility[]>({
     queryKey: ['/api/facilities'],
   });
-  
+
   // Select first facility by default
   React.useEffect(() => {
     if (facilities.length > 0 && !selectedFacilityId) {
       setSelectedFacilityId(facilities[0].id);
     }
   }, [facilities, selectedFacilityId]);
-  
+
   // Get the selected facility object
   const selectedFacility = facilities.find(f => f.id === selectedFacilityId) || { id: 0, name: 'Loading...' };
-  
+
   // Fetch spots for selected facility
   const { data: spots = [], isLoading: isLoadingSpots } = useQuery<ParkingSpot[]>({
     queryKey: selectedFacilityId ? [`/api/facilities/${selectedFacilityId}/spots`] : [''],
     enabled: !!selectedFacilityId,
   });
-  
+
   // Fetch user's vehicles
   const { data: vehicles = [] } = useQuery<Vehicle[]>({
     queryKey: ['/api/vehicles'],
   });
-  
+
   // Form schema for adding a vehicle
   const addVehicleSchema = insertVehicleSchema.omit({ userId: true });
-  
+
   // Setup form for adding a vehicle
   const form = useForm<z.infer<typeof addVehicleSchema>>({
     resolver: zodResolver(addVehicleSchema),
@@ -321,7 +321,7 @@ export default function BookingPage() {
       year: 2022,
     },
   });
-  
+
   // Mutation for adding a vehicle
   const addVehicleMutation = useMutation({
     mutationFn: async (values: z.infer<typeof addVehicleSchema>) => {
@@ -345,18 +345,18 @@ export default function BookingPage() {
       });
     },
   });
-  
+
   // Handle adding a vehicle
   function onAddVehicle(values: z.infer<typeof addVehicleSchema>) {
     addVehicleMutation.mutate(values);
   }
-  
+
   // Quick booking mutation
   const quickBookMutation = useMutation({
     mutationFn: async (values: BookingFormValues) => {
-      const startTime = new Date(`${values.date}T${values.time}`);
+      const startTime = new Date(values.date + "T" + values.time); //Improved Date parsing
       const endTime = addHours(startTime, parseInt(values.duration));
-      
+
       const res = await apiRequest('POST', '/api/bookings', {
         vehicleId: parseInt(values.vehicleId),
         spotId: parseInt(values.spotId || '0'),
@@ -421,7 +421,7 @@ export default function BookingPage() {
   const handleSpotSelect = (spot: ParkingSpot) => {
     if (spot.status === 'available') {
       setSelectedSpot(spot);
-      
+
       // Simulate entering parking facility after 3 seconds
       // In a real app, this would be triggered by geolocation or beacon
       setTimeout(() => {
@@ -429,13 +429,13 @@ export default function BookingPage() {
       }, 3000);
     }
   };
-  
+
   // Handle ADAS confirmation
   const handleAdasConfirm = () => {
     setAdasModalOpen(false);
     setIsNavigating(true);
   };
-  
+
   // Handle navigation completed
   const handleNavigationComplete = () => {
     setIsNavigating(false);
@@ -444,12 +444,12 @@ export default function BookingPage() {
       description: "Your vehicle has been successfully parked.",
     });
   };
-  
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Sidebar */}
       <Sidebar isAdmin={user?.isAdmin} />
-      
+
       {/* Main Content */}
       <div className="ml-16 md:ml-64 p-6">
         {/* Top Bar */}
@@ -460,12 +460,12 @@ export default function BookingPage() {
               Reserve your spot in advance
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <ThemeToggle />
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Booking Form */}
           <div>
@@ -478,7 +478,7 @@ export default function BookingPage() {
               </CardHeader>
               <CardContent>
                 <BookingForm selectedSpot={selectedSpot || undefined} />
-                
+
                 {/* Add Vehicle Button */}
                 <div className="mt-4">
                   <Button 
@@ -493,7 +493,7 @@ export default function BookingPage() {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Center/Right Column - Map and Pricing */}
           <div className="lg:col-span-2 space-y-6">
             {/* Parking Selection */}
@@ -503,7 +503,7 @@ export default function BookingPage() {
                 <CardDescription>
                   Choose a facility and find an available parking spot.
                 </CardDescription>
-                
+
                 {/* Facility Selector */}
                 <div className="w-full max-w-xs mt-4">
                   <Select 
@@ -531,7 +531,7 @@ export default function BookingPage() {
                       <TabsTrigger value="list" className="flex-1">List View</TabsTrigger>
                     </TabsList>
                   </div>
-                  
+
                   <TabsContent value="map" className="m-0">
                     <div className="h-[400px]">
                       <ParkingMap 
@@ -541,7 +541,7 @@ export default function BookingPage() {
                       />
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="list" className="m-0 p-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-[300px] overflow-y-auto">
                       {spots
@@ -581,7 +581,7 @@ export default function BookingPage() {
                             </div>
                           </div>
                         ))}
-                      
+
                       {spots.filter(spot => spot.status === 'available').length === 0 && (
                         <div className="col-span-full text-center py-10 text-gray-500 dark:text-gray-400">
                           No available spots in this facility at the moment.
@@ -592,7 +592,7 @@ export default function BookingPage() {
                 </Tabs>
               </CardContent>
             </Card>
-            
+
             {/* Pricing Information */}
             <Card>
               <CardHeader>
@@ -610,7 +610,7 @@ export default function BookingPage() {
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
                   <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">SPARK Pro Membership</h4>
                   <p className="text-sm text-blue-700 dark:text-blue-400 mb-3">
@@ -625,7 +625,7 @@ export default function BookingPage() {
           </div>
         </div>
       </div>
-      
+
       {/* Add Vehicle Dialog */}
       <Dialog open={addVehicleDialogOpen} onOpenChange={setAddVehicleDialogOpen}>
         <DialogContent>
@@ -635,7 +635,7 @@ export default function BookingPage() {
               Enter your vehicle details to add it to your account.
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onAddVehicle)} className="space-y-4">
               <FormField
@@ -651,7 +651,7 @@ export default function BookingPage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="make"
@@ -665,7 +665,7 @@ export default function BookingPage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="model"
@@ -679,7 +679,7 @@ export default function BookingPage() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="year"
@@ -702,7 +702,7 @@ export default function BookingPage() {
                   </FormItem>
                 )}
               />
-              
+
               <DialogFooter>
                 <Button 
                   type="submit" 
