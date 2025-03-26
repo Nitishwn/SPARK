@@ -389,13 +389,18 @@ export default function BookingPage() {
   const handleQuickBook = (spot: ParkingSpot) => {
     if (vehicles && vehicles.length > 0) {
       setSelectedSpot(spot);
+      const startTime = new Date();
+      const endTime = new Date(startTime);
+      endTime.setHours(endTime.getHours() + 2); // 2 hour duration
+
       const bookingData = {
-        facilityId: spot.facilityId.toString(),
-        date: format(new Date(), 'yyyy-MM-dd'),
-        time: format(new Date(), 'HH:mm'),
-        duration: '2',
-        vehicleId: vehicles[0].id.toString(),
-        spotId: spot.id.toString(),
+        vehicleId: vehicles[0].id,
+        spotId: spot.id,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        totalAmount: 2000, // 20.00 in cents
+        paymentStatus: 'pending',
+        status: 'active'
       };
       toast({
         title: "Quick booking",
