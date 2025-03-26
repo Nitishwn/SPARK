@@ -396,8 +396,8 @@ export default function BookingPage() {
       const bookingData = {
         vehicleId: vehicles[0].id,
         spotId: spot.id,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
+        startTime: startTime,
+        endTime: endTime,
         totalAmount: 2000, // 20.00 in cents
         paymentStatus: 'pending',
         status: 'active'
