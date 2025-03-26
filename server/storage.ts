@@ -188,8 +188,8 @@ export class MemStorage implements IStorage {
       name: 'Downtown Parking Facility',
       address: '123 Main St, Downtown',
       totalSpots: 100,
-      hourlyRate: 250, // $2.50
-      fullDayRate: 1800, // $18.00
+      hourlyRate: 250, // ₹2.50
+      fullDayRate: 1800, // ₹18.00
       hasEVCharging: true
     };
     

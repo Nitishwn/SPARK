@@ -239,10 +239,10 @@ export function BookingForm({ selectedSpot, onSuccess }: BookingFormProps) {
             
             {selectedSpot && (
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                <h4 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Selected Spot</h4>
-                <p className="text-sm text-blue-700 dark:text-blue-400">
-                  You have selected spot {selectedSpot.spotNumber} in section {selectedSpot.section}.
-                </p>
+                <div className="font-medium text-blue-800 dark:text-blue-300 mb-2">Selected Spot</div>
+                <div className="text-sm text-blue-700 dark:text-blue-400">
+                  You have selected spot {selectedSpot.spotNumber} in section {selectedSpot.section}
+                </div>
               </div>
             )}
             
