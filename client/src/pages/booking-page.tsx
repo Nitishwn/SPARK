@@ -360,8 +360,8 @@ export default function BookingPage() {
       const res = await apiRequest('POST', '/api/bookings', {
         vehicleId: parseInt(values.vehicleId),
         spotId: parseInt(values.spotId || '0'),
-        startTime: new Date(startTime).toISOString(),
-        endTime: new Date(endTime).toISOString(),
+        startTime: startTime instanceof Date ? startTime.toISOString() : new Date(startTime).toISOString(),
+        endTime: endTime instanceof Date ? endTime.toISOString() : new Date(endTime).toISOString(),
         totalAmount: 1000, // ₹10.00, would be calculated based on duration and facility rates
         paymentStatus: 'pending',
         status: 'active'
