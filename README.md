@@ -7,13 +7,12 @@ Welcome to SPARK ( Smart Parking and Autonomous Real-time Kinetics)! This projec
 
 ## 📌 Features
 
-* 🔐 **Secure Authentication:** User login and registration system.
-* 📍 **Real-time Availability:** See live updates on parking spot status.
+* 🔐 **Secure Authentication** User login and registration system.
+* 📍 **Real-time Availability** See live updates on parking spot status.
 * 🌍 **SPARK utilizes** IoT, AI, and ADAS to enable:  
-* Real-time spot detection* using smart sensors.  
-* Mobile-based guidance* for non-ADAS vehicles.  
+* 🌐 **Real-time** spot detection using smart sensors.  
+* ✨ **Mobile-based** guidance for non-ADAS vehicles.  
 * 📊 **Clean Dashboard UI:** Intuitive interface built with React and Tailwind CSS.
-* 🌍 **Scalable API Architecture:** Backend built with Node.js/Express for robustness.
 * 📦 **Type-safe Database Operations:** Leveraging Drizzle ORM for reliable data handling.
 
 ![Spark2](https://github.com/user-attachments/assets/58e4c81f-e2a7-45d9-9dc0-d964d9e0367d)
